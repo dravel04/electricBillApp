@@ -1,4 +1,4 @@
-# Light Calculator
+# Electric Bill App
 App en python que dados los valores de una factura de electrica, los compare con los datos cargados de tarifas de proveedores y nos diga cual es la tarifa que más nos interesa.
 
 ## UI
