@@ -1,5 +1,5 @@
 import os
-from src.test_profile import UserProfile
+from src.user_profile import UserProfile
 
 # Importamos funciones utils
 from resources.constants import clear_screen, display_header
@@ -10,10 +10,13 @@ class ElectricBillApp:
         clear_screen()
 
     def display_menu(self):
+        i=1
         print("Seleccione una opción:")
-        print("1. Nuevo Perfil")
+        print(f"{i}. Nuevo Perfil")
+        i += 1
         if self.user_profile.profiles:
-            print("2. Perfiles")
+            print(f"{i}. Perfiles")
+        print(f"qq. Salir")
 
     def run(self):
         ERR_OPT = False
@@ -21,10 +24,10 @@ class ElectricBillApp:
             while True:
                 clear_screen()
                 display_header()
-                self.display_menu()
                 if ERR_OPT:
                     print(f"'{option}' no es una opción válida.\n")
                     ERR_OPT = False
+                self.display_menu()
                 option = input("Opción: ")
                 if option.lower() == "qq":
                     clear_screen()

@@ -13,8 +13,13 @@ class UserProfile:
 
     def load_profiles(self):
         if os.path.exists(PROFILES_FILE_PATH):
-            with open(PROFILES_FILE_PATH, "r") as file:
-                self.profiles = json.load(file)
+            try:
+                with open(PROFILES_FILE_PATH, "r") as file:
+                    self.profiles = json.load(file)
+            except json.decoder.JSONDecodeError:
+                # Si el archivo JSON está vacío o no tiene un formato válido,
+                # inicializa self.profiles como un diccionario vacío
+                self.profiles = {}
 
     def save_profiles(self):
         with open(PROFILES_FILE_PATH, "w") as file:
