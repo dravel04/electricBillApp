@@ -1,4 +1,4 @@
-from src.electric_bill_app import ElectricBillApp
+from src.test_billapp import ElectricBillApp
 
 def main():
     app = ElectricBillApp()
