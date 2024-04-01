@@ -1,8 +1,9 @@
 import os
 import json
+from tabulate import tabulate
 
 # Agregar la ruta al directorio que contiene constants.py al sys.path
-from resources.constants import PROFILES_FILE_PATH
+from resources.constants import PROFILES_FILE_PATH,TARIFFS_FILE_PATH, TARIFFS_DAYS
 from resources.constants import clear_screen, display_header
 
 
@@ -38,10 +39,8 @@ class UserProfile:
         solar = input("¿Tiene energía solar? (s/n): ")
         if solar.lower() == "s":
             solar_excess = input("Excedentes de energía solar (kWh): ")
-            solar_price = input("Precio al que se pagan los excedentes (€/kWh): ").replace(",", ".")
         else:
             solar_excess = ""
-            solar_price = ""
         self.profiles[profile_id] = {
             "power_peak": float(power_peak),
             "power_valley": float(power_valley),
@@ -49,7 +48,6 @@ class UserProfile:
             "energy_flat": float(energy_flat),
             "energy_valley": float(energy_valley),
             "solar_excess": float(solar_excess) if solar_excess else None,
-            "solar_price": float(solar_price) if solar_price else None
         }
         self.save_profiles()
         print("\nPerfil creado correctamente.\n")
@@ -106,9 +104,7 @@ class UserProfile:
             print("0. Guardar cambios")
             for key, value in self.profiles[profile_id].items():
                 if key == 'solar_excess' and value is None:
-                    print(f"{i}. Añadir información solar (solar_excess, solar_price)")
-                elif key == 'solar_price' and value is None:
-                    continue
+                    print(f"{i}. Añadir información solar (solar_excess)")
                 else:
                     print(f"{i}. {key}: {value}")
                 i += 1
@@ -124,12 +120,10 @@ class UserProfile:
                 elif option == i:
                     break
                 elif option > 0 and option <= len(self.profiles[profile_id]):
-                    if option == 6 and self.profiles[profile_id]['solar_excess'] is None and self.profiles[profile_id]['solar_price'] is None:
-                        # Agregar información solar si solar_excess y solar_price son None
+                    if option == 6 and self.profiles[profile_id]['solar_excess'] is None:
+                        # Agregar información solar si solar_excess son None
                         solar_excess = input("Excedentes de energía solar (kWh): ")
-                        solar_price = input("Precio al que se pagan los excedentes (€/kWh): ").replace(",", ".")
                         self.profiles[profile_id]['solar_excess'] = float(solar_excess)
-                        self.profiles[profile_id]['solar_price'] = float(solar_price)
                         print("Información solar agregada correctamente.")
                         continue
                     field_index = option - 1
@@ -150,5 +144,59 @@ class UserProfile:
             self.save_profiles()
             print(f"Perfil '{profile_id}' eliminado correctamente.")
 
+    def launch_comparison(self, profile_id):
+        # Cargar las tarifas desde el archivo JSON
+        tariffs = self.load_tariffs()
+        # Obtener el perfil del usuario
+        user_profile = self.profiles[profile_id]
+
+        # Calcular el coste total para cada tarifa y almacenarlos en un diccionario
+        costs = []
+        for tariff_name, tariff_data in tariffs.items():
+            # total_cost = self.calculate_total_cost(user_profile, tariff_data)
+            power_cost, energy_cost, solar_cost, total_cost = self.calculate_total_cost(user_profile, tariff_data)
+            # costs.append([tariff_name, total_cost])
+            costs.append([tariff_name, power_cost, energy_cost, solar_cost, total_cost ])
+
+        # Crear tabla de comparación
+        # headers = ["Tarifa", "Coste Total"]
+        headers = ["Tarifa","Coste Potencia","Coste Energia","Excendentes","Coste Total"]
+        table = tabulate(costs, headers=headers, tablefmt="grid")
+
+        # Mostrar tabla
+        clear_screen()
+        display_header()
+        print("Comparativa de Tarifas:")
+        print(table)
+
+        # Encontrar la tarifa más conveniente
+        best_tariff = min(costs, key=lambda x: x[1])
+        # Mostrar resultados al usuario
+        print("\nTarifa más interesante:", best_tariff[0])
+        print("Coste total:", best_tariff[headers.index("Coste Total")], '€')
+
+        # 'Bloqueamos' la pantalla para poder leer la comparitva
+        input(f"\n(pulse cualquier tecla para continuar)")
 
 
+    def load_tariffs(self):
+        # Cargar las tarifas desde el archivo JSON
+        with open(TARIFFS_FILE_PATH, "r") as file:
+            tariffs = json.load(file)
+        return tariffs
+
+    def calculate_total_cost(self, user_profile, tariff_data):
+        # Calcular el coste total para una tarifa específica
+        power_cost = (user_profile["power_peak"] * tariff_data["power_peak"] + user_profile["power_valley"] * tariff_data["power_valley"]) * TARIFFS_DAYS
+        energy_cost = user_profile["energy_peak"] * tariff_data["energy_peak"] + user_profile["energy_flat"] * tariff_data["energy_flat"] + user_profile["energy_valley"] * tariff_data["energy_valley"]
+        
+        # Verificar si hay excedentes de energía solar y calcular su coste
+        solar_cost = 0
+        if user_profile["solar_excess"] is not None:
+            solar_cost = user_profile["solar_excess"] * tariff_data["solar_excess"]
+
+        # Calcular el coste total sumando todos los componentes y añadiendo el coste de la batería virtual
+        total_cost = power_cost + energy_cost + solar_cost + tariff_data.get("virtual_baterry", 0)
+
+        # return total_cost
+        return power_cost, energy_cost, solar_cost, total_cost

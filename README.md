@@ -16,7 +16,18 @@ Lo primero que haremos es la UI. Tendrá 2 opciones:
 2. **Perfiles (solo saldrá en caso de que existe algun prefil ya creado):** Listado de los perfiles registrados. Este listado será numerico: *1,2,3...* Dentro de cada perfil tendremos la siguientes opciones
     - **Editar perfil:** Una vez entramos en esta opción, se nos mostrarán los datos del perfil actual -> visualizar el diccionario completo. Se nos dará la opción de editar cualquiera de los campos mediante un número. Cada campo corresponderá a un numero comenzando por el 1. Cada vez que cambiemos un campos actualizaremos el diccionario cargado en memoria. La última opción numerica será guardar los cambios, esto pasará los cambios al fichero `profiles.json`
     - **Lanzar comparativa:** Tiene la lógica completa de la comparación. Cruza los datos introducidos por el usuario en el perfil, con los datos de las tarifas guardadas.
+        - Similar a los perfiles, tendremos una entrada por tarifa:
+            - Identificador de la tarifa
+        - Datos de potencia:
+            - Punta / Valle
+        - Datos de energia:
+            - Punta / Llano / Valle
+        - ¿Solar?
+            - Precio compra excedentes
+            - Bateria virtual (precio)
 
 ### Logica
-Al crear un nuevo perfil, este generará un diccionario con los campos marcados y se guardará como fichero en la ruta del script. Se genará un fichero por perfil.
+- Al crear un nuevo perfil, este generará un diccionario con los campos marcados y se guardará como fichero en la ruta del script. Se genará un fichero por perfil.
+    - Cada perfil se podrá consultar y actualizar en cualquier momento
+- La comparativa se hará cruzando todos los datos de las tarifas almacenadas con el perfil seleccionado
 
